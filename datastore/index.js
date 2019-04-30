@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
-
-var items = {};
+const Promise = require('bluebird');
+// var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
@@ -11,7 +11,7 @@ exports.create = (text, callback) => {
   // var id = counter.getNextUniqueId();
   // items[id] = text;
   // callback(null, { id, text });
-
+  
   counter.getNextUniqueId((err, id) => {
     if (err) {
       throw ('Cannot create!');
@@ -28,6 +28,8 @@ exports.create = (text, callback) => {
   });
 };
 
+const readFileAsync = Promise.promisify(fs.readFile);
+
 exports.readAll = (callback) => {
 // var data = _.map(items, (text, id) => {
 //   return { id, text };
@@ -39,15 +41,22 @@ exports.readAll = (callback) => {
   //read the file name (path.basename())
 
   fs.readdir(exports.dataDir, (err,files) => {
-    var output = [];
-    _.map(files, (file) => {
-      var id = file.replace('.txt', '');
-      output.push({id: id, text: id});
-      // fs.readFile(`${exports.dataDir}/${file}`, {encoding: 'utf-8'}, (err, fileData) => {
-      //   console.log('fileData', fileData, id)
-      // })
+    var idArr = [];
+    var promArr = _.map(files, (file) => {
+      idArr.push(file.replace('.txt', ''));
+      var id = path.parse(file).name;
+      return readFileAsync(`${exports.dataDir}/${file}`, {encoding: 'utf-8'});
     });
-    callback(null, output);
+    // console.log(idArr, promArr)
+    Promise.all(promArr).then((results) => {
+      let output = [];
+      results.forEach( (val, i) => {
+        output.push({id: idArr[i], text: val});
+      });
+      callback(null, output);
+    });
+
+    // console.log(promArr)
   });
 };
 
