@@ -56,15 +56,6 @@ exports.getNextUniqueId = (cb) => {
   });
 
 
-  // readCounter((temp1, count) => {
-  //   if (count === 0) {
-  //     writeCounter(count, (temp2, counterString) => {
-  //       console.log(`New counter.txt created with ${counterString}!`)
-  //     })
-  //   } else {
-  //     return zeroPaddedNumber(count);
-  //   }
-  // })
 };
 
 
