@@ -29,6 +29,17 @@ exports.create = (text, callback) => {
 };
 
 const readFileAsync = Promise.promisify(fs.readFile);
+const readOneAsync = (id) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(`${exports.dataDir}/${id}.txt`, {encoding: 'utf-8'}, (err, text) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({id, text});
+      }
+    });
+  });
+};
 
 exports.readAll = (callback) => {
 // var data = _.map(items, (text, id) => {
@@ -41,24 +52,17 @@ exports.readAll = (callback) => {
   //read the file name (path.basename())
 
   fs.readdir(exports.dataDir, (err,files) => {
-    var idArr = [];
     var promArr = _.map(files, (file) => {
-      idArr.push(file.replace('.txt', ''));
-      var id = path.parse(file).name;
-      return readFileAsync(`${exports.dataDir}/${file}`, {encoding: 'utf-8'});
+      let id = path.parse(file).name;
+      return readOneAsync(id);
     });
-    // console.log(idArr, promArr)
     Promise.all(promArr).then((results) => {
-      let output = [];
-      results.forEach( (val, i) => {
-        output.push({id: idArr[i], text: val});
-      });
-      callback(null, output);
+      callback(null, results);
     });
-
-    // console.log(promArr)
   });
 };
+
+
 
 exports.readOne = (id, callback) => {
   // var text = items[id];
